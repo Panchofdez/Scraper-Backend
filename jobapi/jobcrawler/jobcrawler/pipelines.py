@@ -9,5 +9,8 @@ from itemadapter import ItemAdapter
 
 class JobcrawlerPipeline:
     def process_item(self, item, spider):
+        print("hello")
+        print(item['title'])
+        print(spider)
         return item
     
