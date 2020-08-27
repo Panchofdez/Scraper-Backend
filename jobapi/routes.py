@@ -13,6 +13,7 @@ from jobapi import app, db, bcrypt
 import uuid
 import jwt
 from functools import wraps
+from dataclasses import asdict
 
 crochet.setup()
 output_data = []
@@ -62,7 +63,7 @@ def login():
         email = request.json['email']
         password = request.json['password']
         if not email or not password:
-            return jsonify({"error": "Email and password are required"})
+            return jsonify({"error": "Email and password are required"}), 400
         user = User.query.filter_by(email=email).first()
         if user and bcrypt.check_password_hash(user.password, password):
             token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
@@ -88,6 +89,17 @@ def get_job_data(user, id):
         return jsonify(query.jobs)
     return jsonify({"error": "Error fetching job results"}), 400
 
+@app.route('/analyse/<query_id>',methods=['POST'])
+def analyse(query_id):
+    if request.method == 'POST':
+        technologies = request.json["technologies"]
+        query = Query.query.get(query_id)
+        data = []
+        for job in query.jobs:
+            data.append(asdict(job))
+        return jsonify(analyse_description(data, technologies))
+
+
 @app.route('/scrape', methods=['POST'])
 @get_user
 def scrape_job_data(user):
@@ -98,7 +110,6 @@ def scrape_job_data(user):
             city = request.json["city"]
             country = request.json["country"]
             province = request.json["province"]
-            technologies = request.json["technologies"]
 
             url = create_url(site, job_type, country, city, province)
             # This will remove any existing file with the same name so that the scrapy will not append the data to any previous file.
@@ -113,7 +124,7 @@ def scrape_job_data(user):
                 db.session.commit()
                 print(query.id)
                 save_to_db(query.id, data)
-            return jsonify({"jobs":data, "counter":counter})
+            return jsonify(data)
     except:
         return jsonify({"error":"Error getting job data. Please try again"}), 400
 
@@ -186,7 +197,7 @@ def analyse_description(data, technologies):
         tech = Counter(matches)
         job["technologies"] = tech
     counter = Counter(words)
-    return (data, counter)
+    return {"jobs":data, "counter":counter}
 
 def sort_by_tech(self, data):
     return sorted(data, key=lambda x:x["score"], reverse=True)
