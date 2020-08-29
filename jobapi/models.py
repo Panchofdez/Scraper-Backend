@@ -25,7 +25,7 @@ class Query(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     site = db.Column(db.String(100), nullable=False)
     job_type = db.Column(db.String(100), nullable=False)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.now)
     city = db.Column(db.String(100), nullable=False)
     country =db.Column(db.String(100), nullable=False)
     province = db.Column(db.String(100), nullable=False)

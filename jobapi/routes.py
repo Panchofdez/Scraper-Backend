@@ -14,6 +14,7 @@ import uuid
 import jwt
 from functools import wraps
 from dataclasses import asdict
+from datetime import datetime
 
 crochet.setup()
 output_data = []
@@ -80,24 +81,75 @@ def get_job_queries(user):
         return jsonify(user_query_history)
     return jsonify({"error":"Error fetching your search history"}), 400
 
-@app.route('/queries/<id>', methods=['GET'])
+@app.route('/queries/<query_id>', methods=['GET'])
 @get_user
-def get_job_data(user, id):
+def get_job_data(user, query_id):
     if user:
-        query = Query.query.get(id)
+        query = Query.query.get(query_id)
         print(len(query.jobs))
-        return jsonify(query.jobs)
+        return jsonify({"jobs":query.jobs, "query_id":query_id})
     return jsonify({"error": "Error fetching job results"}), 400
+
+@app.route('/queries/<query_id>', methods=['PUT'])
+@get_user
+def update_job_data(user, query_id):
+    try:
+        if user:
+            technologies = request.json["technologies"]
+            query = Query.query.get(query_id)
+            if user.id != query.user_id:
+                return jsonify({"error":"Unauthorized Request"}), 403
+            url = create_url(query.site, query.job_type, query.country, query.city, query.province)
+            query.date = datetime.now()
+            for job in query.jobs:
+                db.session.delete(job)
+            db.session.commit()
+
+            output =  scrape(url, technologies)
+            save_to_db(query.id, output["jobs"])
+            output["query_id"] = query_id
+            return jsonify(output)
+    except:
+        return jsonify({"error":"Error scraping job data"}), 400
+
+@app.route('/queries/<query_id>', methods=['DELETE'])
+@get_user
+def delete_query(user, query_id):
+    try:
+        if user:
+            query = Query.query.get(query_id)
+            if user.id != query.user_id:
+                return jsonify({"error":"Unauthorized Request"}), 403  
+            for job in query.jobs:
+                db.session.delete(job)
+
+            db.session.delete(query)
+            db.session.commit()
+
+            user_query_history = Query.query.filter_by(user_id=user.id).all()
+            return jsonify(user_query_history)
+    except:
+        return jsonify({"error":"Unable to process request"}), 400
+
+       
+
 
 @app.route('/analyse/<query_id>',methods=['POST'])
 def analyse(query_id):
-    if request.method == 'POST':
-        technologies = request.json["technologies"]
-        query = Query.query.get(query_id)
-        data = []
-        for job in query.jobs:
-            data.append(asdict(job))
-        return jsonify(analyse_description(data, technologies))
+    try:
+        if request.method == 'POST':
+            technologies = request.json["technologies"]
+            print(technologies)
+            query = Query.query.get(query_id)
+            data = []
+            for job in query.jobs:
+                data.append(asdict(job))
+
+            output = analyse_description(data, technologies)
+            output["query_id"] = query_id
+            return jsonify(output)
+    except:
+        return jsonify({"error": "Error fetching job results"}), 400
 
 
 @app.route('/scrape', methods=['POST'])
@@ -107,24 +159,28 @@ def scrape_job_data(user):
         if request.method == 'POST':
             site = request.json["site"]
             job_type = request.json["type"]
-            city = request.json["city"]
+            city = request.json["city"].capitalize()
             country = request.json["country"]
-            province = request.json["province"]
-
+            province = request.json["province"].upper()
+            technologies = request.json["technologies"]
+            print(technologies)
             url = create_url(site, job_type, country, city, province)
             # This will remove any existing file with the same name so that the scrapy will not append the data to any previous file.
             # if os.path.exists("outputfile.json"): 
             # 	os.remove("outputfile.json")
             
-            (data, counter) =  scrape(url, technologies) # Passing to the Scrape function
+            output =  scrape(url, technologies) # Passing to the Scrape function
+            query_id = ""
             if user:
                 print(user.id)
                 query = Query(site=site, job_type=job_type,city=city, country=country, province=province, user_id=user.id)
                 db.session.add(query)
                 db.session.commit()
                 print(query.id)
-                save_to_db(query.id, data)
-            return jsonify(data)
+                save_to_db(query.id, output["jobs"])
+                query_id = query.id
+            output["query_id"] = query_id
+            return jsonify(output)
     except:
         return jsonify({"error":"Error getting job data. Please try again"}), 400
 
