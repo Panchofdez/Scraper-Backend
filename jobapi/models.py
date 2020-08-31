@@ -9,6 +9,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable =False)
     queries = db.relationship('Query', backref='author', lazy=True)
+    favorites =  db.relationship('Favorite', backref='author', lazy=True)
 
 @dataclass
 class Query(db.Model):
@@ -41,7 +42,7 @@ class Job(db.Model):
     description:str
     link:str
     salary:str
-    query_id:str
+    query_id:int
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False) 
@@ -52,4 +53,22 @@ class Job(db.Model):
     salary = db.Column(db.String(200))
     query_id = db.Column(db.Integer, db.ForeignKey('query.id'), nullable=False)
     
+@dataclass
+class Favorite(db.Model):
+    id:int
+    title:str
+    company:str
+    rating:int
+    description:str
+    link:str
+    salary:str
+    user_id = int
 
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False) 
+    company = db.Column(db.String(100), nullable=False)
+    rating = db.Column(db.Integer)
+    description = db.Column(db.Text)
+    link = db.Column(db.Text)
+    salary = db.Column(db.String(200))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

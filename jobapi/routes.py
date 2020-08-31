@@ -8,7 +8,7 @@ from jobapi.jobcrawler.jobcrawler.spiders.job_spider import JobSpider
 import time 
 import re
 from collections import Counter
-from jobapi.models import User, Query, Job
+from jobapi.models import User, Query, Job, Favorite
 from jobapi import app, db, bcrypt
 import uuid
 import jwt
@@ -17,7 +17,6 @@ from dataclasses import asdict
 from datetime import datetime
 
 crochet.setup()
-output_data = []
 crawl_runner = CrawlerRunner()
 
 def get_user(func):
@@ -47,48 +46,66 @@ def signup():
             email = request.json['email']
             password = request.json['password']
             if not email or not password:
-                return jsonify({"error": "Email and password are required"})
+                return jsonify({"type":"Error", "message":"Email and password are required"})
+            check_user = User.query.filter_by(email=email).first()
+        
+            if check_user:
+                return jsonify({"type":"Error", "message":"Email already taken. Sign in instead"}), 400
+         
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
             user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password)
+            
+            
             db.session.add(user)
             db.session.commit()
             token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
 
             return jsonify({"token": token.decode('UTF-8')})
+        return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
+
     except:
-        return jsonify({"error":"Error creating account. Already have an account? Sign in instead"}), 400
+        return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        email = request.json['email']
-        password = request.json['password']
-        if not email or not password:
-            return jsonify({"error": "Email and password are required"}), 400
-        user = User.query.filter_by(email=email).first()
-        if user and bcrypt.check_password_hash(user.password, password):
-            token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
+    try:
+        if request.method == 'POST':
+            email = request.json['email']
+            password = request.json['password']
+            if not email or not password:
+                return jsonify({"type":"Error", "message":"Email and password are required"}), 400
+            user = User.query.filter_by(email=email).first()
+            if user and bcrypt.check_password_hash(user.password, password):
+                token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
+                return jsonify({"token": token.decode('UTF-8')})
+            return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
+        return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
 
-            return jsonify({"token": token.decode('UTF-8')})
-            
-        return jsonify({"error":"Email not found. Sign up instead"}), 400
+    except:        
+        return jsonify({"type":"Error", "message":"Email not found. Sign up instead"})
 
 @app.route('/queries', methods=['GET'])
 @get_user
 def get_job_queries(user):
-    if user:
-        user_query_history = Query.query.filter_by(user_id=user.id).all()
-        return jsonify(user_query_history)
-    return jsonify({"error":"Error fetching your search history"}), 400
+    try:
+        if user:
+            user_query_history = Query.query.filter_by(user_id=user.id).all()
+            return jsonify(user_query_history)
+        return jsonify({"type":"Error", "message":"Error fetching your search history"}), 400
+    except:
+        return jsonify({"type":"Error", "message":"Error fetching your search history"}), 400
 
 @app.route('/queries/<query_id>', methods=['GET'])
 @get_user
 def get_job_data(user, query_id):
-    if user:
-        query = Query.query.get(query_id)
-        print(len(query.jobs))
-        return jsonify({"jobs":query.jobs, "query_id":query_id})
-    return jsonify({"error": "Error fetching job results"}), 400
+    try:
+        if user:
+            query = Query.query.get(query_id)
+            print(len(query.jobs))
+            return jsonify({"jobs":query.jobs, "query":query})
+        return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
+    except:
+        return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
 
 @app.route('/queries/<query_id>', methods=['PUT'])
 @get_user
@@ -98,19 +115,21 @@ def update_job_data(user, query_id):
             technologies = request.json["technologies"]
             query = Query.query.get(query_id)
             if user.id != query.user_id:
-                return jsonify({"error":"Unauthorized Request"}), 403
+                return jsonify({"type":"Error", "message":"Unauthorized Request"}), 403
             url = create_url(query.site, query.job_type, query.country, query.city, query.province)
             query.date = datetime.now()
             for job in query.jobs:
                 db.session.delete(job)
             db.session.commit()
-
             output =  scrape(url, technologies)
             save_to_db(query.id, output["jobs"])
-            output["query_id"] = query_id
+            output["query"] = query
+            print(len(output["jobs"]))
             return jsonify(output)
+        else:
+            return jsonify({"type":"Error", "message":"Must be signed in"}), 400
     except:
-        return jsonify({"error":"Error scraping job data"}), 400
+        return jsonify({"type":"Error", "message": "Error scraping job data"}), 400
 
 @app.route('/queries/<query_id>', methods=['DELETE'])
 @get_user
@@ -119,17 +138,17 @@ def delete_query(user, query_id):
         if user:
             query = Query.query.get(query_id)
             if user.id != query.user_id:
-                return jsonify({"error":"Unauthorized Request"}), 403  
+                return jsonify({"type": "Error", "message":"Unauthorized Request"}), 403  
             for job in query.jobs:
                 db.session.delete(job)
 
             db.session.delete(query)
             db.session.commit()
-
-            user_query_history = Query.query.filter_by(user_id=user.id).all()
-            return jsonify(user_query_history)
+            return jsonify({"type":"Success", "message": "Successfuly deleted search query"})
+        else:
+            return jsonify({"type":"Error","message": "Must be signed in!"}), 400
     except:
-        return jsonify({"error":"Unable to process request"}), 400
+        return jsonify({"type":"Error","message":"Unable to process request"}), 400
 
        
 
@@ -146,11 +165,41 @@ def analyse(query_id):
                 data.append(asdict(job))
 
             output = analyse_description(data, technologies)
-            output["query_id"] = query_id
+            output["query"] = query
+            print(len(output["jobs"]))
             return jsonify(output)
+        return jsonify({"type":"Error","message": "Error fetching job results"}), 400
     except:
-        return jsonify({"error": "Error fetching job results"}), 400
+        return jsonify({"type":"Error","message": "Error fetching job results"}), 400
 
+
+@app.route('/favorites' , methods=['GET'])
+@get_user
+def fetch_favorite_jobs(user):
+    try:
+        if user:  
+            return jsonify(user.favorites)
+        else:
+            return jsonify({"type":"Error", "message": "Must be signed in"}), 400
+    except:
+        return jsonify({"type":"Error", "message": "Unable to fetch results, please try again"}), 400
+
+@app.route('/favorites', methods=['POST'])
+@get_user
+def favorite_job(user):
+    try:
+        if user and request.method == 'POST':
+            job= request.json["job"]
+            print(job)
+            f_job = Favorite(title=job['title'], company=job['company'], rating=job['rating'], description=job['description'],link=job['link'], salary=job['salary'], user_id=user.id)
+            db.session.add(f_job)
+            db.session.commit()
+
+            return jsonify({"type":"Success", "message":"Successfully saved job to your profile"})
+        else:
+            return jsonify({"type":"Error", "message": "You must be signed in to access this feature"}), 400
+    except:
+        return jsonify({"type":"Error","message": "Unable to save job to your profile, please try again"}), 400
 
 @app.route('/scrape', methods=['POST'])
 @get_user
@@ -168,9 +217,8 @@ def scrape_job_data(user):
             # This will remove any existing file with the same name so that the scrapy will not append the data to any previous file.
             # if os.path.exists("outputfile.json"): 
             # 	os.remove("outputfile.json")
-            
             output =  scrape(url, technologies) # Passing to the Scrape function
-            query_id = ""
+            query = {}
             if user:
                 print(user.id)
                 query = Query(site=site, job_type=job_type,city=city, country=country, province=province, user_id=user.id)
@@ -178,13 +226,18 @@ def scrape_job_data(user):
                 db.session.commit()
                 print(query.id)
                 save_to_db(query.id, output["jobs"])
-                query_id = query.id
-            output["query_id"] = query_id
+                query = query
+            output["query"] = query
+            print(len(output["jobs"]))
             return jsonify(output)
     except:
-        return jsonify({"error":"Error getting job data. Please try again"}), 400
+        return jsonify({"type": "Error", "message": "Error scraping job data, please try again"})
+
 
 def scrape(url, tech):
+    global output_data
+    output_data=[]
+    print(len(output_data))
     scrape_with_crochet(baseUrl=url) # Passing that URL to our Scraping Function
 
     time.sleep(30) # Pause the function while the scrapy spider is running
@@ -193,6 +246,7 @@ def scrape(url, tech):
 
 @crochet.run_in_reactor
 def scrape_with_crochet(baseUrl):
+    
     # This will connect to the dispatcher that will kind of loop the code between these two functions.
     dispatcher.connect(_crawler_result, signal=signals.item_scraped)
     
@@ -226,14 +280,6 @@ def create_url(site, job_type, country, city, province):
             url = f"https://indeed.com/jobs?q={job}&l={city}%2C+{province}"
     print(url)
     return url
-def analyse_text(data):
-        words = []
-        for job in data:
-            # res = re.findall(r"\b[a-z].*?\b", job["description"])
-            res = re.findall(r"\b[a-zA-z/\-+#.]+\b", job["description"].lower())
-            words.extend(res)
-        counter = Counter(words)
-        return counter
 
 def analyse_description(data, technologies):
     string = r""
