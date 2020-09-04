@@ -37,7 +37,7 @@ def get_user(func):
 
 @app.route("/")
 def hello():
-    return "Hello World"
+    return jsonify({"message":"Hello World"})
 
 @app.route("/signup", methods=['POST'])
 def signup():
