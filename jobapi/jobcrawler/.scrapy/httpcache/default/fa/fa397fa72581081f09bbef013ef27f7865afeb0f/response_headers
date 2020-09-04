@@ -1,0 +1,26 @@
+Cache-Control: no-cache, no-store
+Pragma: no-cache
+Content-Type: text/html; charset=utf-8
+Content-Encoding: gzip
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Vary: Accept-Encoding
+Set-Cookie: JSESSIONID=ajax:9060055221663274930; Path=/; Domain=.www.linkedin.com; Secure
+Set-Cookie: lang=v=2&lang=en-us; Path=/; Domain=linkedin.com; Secure
+Set-Cookie: bcookie="v=2&d9fd4478-2965-4fca-8d90-dc31464b9cf3"; domain=.linkedin.com; Path=/; Secure; Expires=Mon, 05-Sep-2022 05:20:55 GMT
+Set-Cookie: bscookie="v=1&20200904174323e4199144-c888-4631-82eb-a3debe2284f2AQHTxLX8vgsCkxiCcTWyxyZJre9JdOJa"; domain=.www.linkedin.com; Path=/; Secure; Expires=Mon, 05-Sep-2022 05:20:55 GMT; HttpOnly
+Set-Cookie: lidc="b=OGST09:g=1748:u=1:i=1599241403:t=1599327803:s=AQFfWkCXO9Kt1OkZHu5vbbdA1EzRJbye"; Expires=Sat, 05 Sep 2020 17:43:23 GMT; domain=.linkedin.com; Path=/
+X-Fs-Txn-Id: 2b56c0d37b70
+X-Fs-Uuid: 9ec1356b95a5311690527249b22a0000
+Expect-Ct: max-age=86400, report-uri="https://www.linkedin.com/platform-telemetry/ct"
+X-Xss-Protection: 1; mode=block
+Content-Security-Policy-Report-Only: default-src 'none'; connect-src 'self' www.linkedin.com www.google-analytics.com https://dpm.demdex.net/id lnkd.demdex.net blob: https://linkedin.sc.omtrdc.net/b/ss/ static.licdn.com static-exp1.licdn.com static-exp2.licdn.com static-exp3.licdn.com; script-src 'sha256-THuVhwbXPeTR0HszASqMOnIyxqEgvGyBwSPBKBF/iMc=' 'sha256-PyCXNcEkzRWqbiNr087fizmiBBrq9O6GGD8eV3P09Ik=' 'sha256-2SQ55Erm3CPCb+k03EpNxU9bdV3XL9TnVTriDs7INZ4=' 'sha256-S/KSPe186K/1B0JEjbIXcCdpB97krdzX05S+dHnQjUs=' platform.linkedin.com platform-akam.linkedin.com platform-ecst.linkedin.com platform-azur.linkedin.com static.licdn.com static-exp1.licdn.com static-exp2.licdn.com static-exp3.licdn.com; img-src data: blob: *; font-src data: *; style-src 'self' 'unsafe-inline' static.licdn.com static-exp1.licdn.com static-exp2.licdn.com static-exp3.licdn.com; media-src dms.licdn.com; child-src blob: *; frame-src 'self' lnkd.demdex.net linkedin.cdn.qualaroo.com; manifest-src 'self'; report-uri https://www.linkedin.com/platform-telemetry/csp?f=g
+Content-Security-Policy: default-src *; connect-src 'self' https://media-src.linkedin.com/media/ www.linkedin.com s.c.lnkd.licdn.com m.c.lnkd.licdn.com s.c.exp1.licdn.com s.c.exp2.licdn.com m.c.exp1.licdn.com m.c.exp2.licdn.com wss://*.linkedin.com dms.licdn.com https://dpm.demdex.net/id https://lnkd.demdex.net/event blob: https://accounts.google.com/gsi/status https://linkedin.sc.omtrdc.net/b/ss/ www.google-analytics.com static.licdn.com static-exp1.licdn.com static-exp2.licdn.com static-exp3.licdn.com media.licdn.com media-exp1.licdn.com media-exp2.licdn.com media-exp3.licdn.com; img-src data: blob: *; font-src data: *; style-src 'unsafe-inline' 'self' static-src.linkedin.com *.licdn.com; script-src 'report-sample' 'unsafe-inline' 'unsafe-eval' 'self' spdy.linkedin.com static-src.linkedin.com *.ads.linkedin.com *.licdn.com static.chartbeat.com www.google-analytics.com ssl.google-analytics.com bcvipva02.rightnowtech.com www.bizographics.com sjs.bizographics.com js.bizographics.com d.la4-c1-was.salesforceliveagent.com slideshare.www.linkedin.com https://snap.licdn.com/li.lms-analytics/insight.min.js platform.linkedin.com platform-akam.linkedin.com platform-ecst.linkedin.com platform-azur.linkedin.com; object-src 'none'; media-src blob: *; child-src blob: lnkd-communities: voyager: *; frame-ancestors 'self'; report-uri https://www.linkedin.com/platform-telemetry/csp?f=l
+X-Frame-Options: sameorigin
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=2592000
+X-Li-Fabric: prod-lor1
+X-Li-Pop: afd-prod-esv5
+X-Li-Proto: http/1.1
+X-Li-Uuid: nsE1a5WlMRaQUnJJsioAAA==
+X-Msedge-Ref: Ref A: ED3CD6ED5E324B52ABA00C97F9301C63 Ref B: YTO01EDGE0506 Ref C: 2020-09-04T17:43:23Z
+Date: Fri, 04 Sep 2020 17:43:23 GMT

@@ -121,7 +121,7 @@ def update_job_data(user, query_id):
             for job in query.jobs:
                 db.session.delete(job)
             db.session.commit()
-            output =  scrape(url, technologies)
+            output =  scrape(url, technologies, query.site)
             save_to_db(query.id, output["jobs"])
             output["query"] = query
             print(len(output["jobs"]))
@@ -158,7 +158,6 @@ def analyse(query_id):
     try:
         if request.method == 'POST':
             technologies = request.json["technologies"]
-            print(technologies)
             query = Query.query.get(query_id)
             data = []
             for job in query.jobs:
@@ -190,7 +189,6 @@ def favorite_job(user):
     try:
         if user and request.method == 'POST':
             job= request.json["job"]
-            print(job)
             f_job = Favorite(title=job['title'], company=job['company'], rating=job['rating'], description=job['description'],link=job['link'], salary=job['salary'], user_id=user.id)
             db.session.add(f_job)
             db.session.commit()
@@ -208,50 +206,51 @@ def scrape_job_data(user):
         if request.method == 'POST':
             site = request.json["site"]
             job_type = request.json["type"]
-            city = request.json["city"].capitalize()
+            city = request.json["city"]
             country = request.json["country"]
-            province = request.json["province"].upper()
+            province = request.json["province"]
             technologies = request.json["technologies"]
-            print(technologies)
             url = create_url(site, job_type, country, city, province)
-            # This will remove any existing file with the same name so that the scrapy will not append the data to any previous file.
-            # if os.path.exists("outputfile.json"): 
-            # 	os.remove("outputfile.json")
-            output =  scrape(url, technologies) # Passing to the Scrape function
+
+            if url == "":
+                return jsonify({"type": "Error", "message": "Error fetching job results, please try again"}),400
+
+            output =  scrape(url, technologies , site) # Passing to the Scrape function
+            if len(output["jobs"]) == 0:
+                return jsonify({"type": "Error", "message": "No results found..."}),400
+
+
             query = {}
             if user:
-                print(user.id)
                 query = Query(site=site, job_type=job_type,city=city, country=country, province=province, user_id=user.id)
                 db.session.add(query)
                 db.session.commit()
-                print(query.id)
                 save_to_db(query.id, output["jobs"])
                 query = query
             output["query"] = query
             print(len(output["jobs"]))
             return jsonify(output)
     except:
-        return jsonify({"type": "Error", "message": "Error scraping job data, please try again"})
+        return jsonify({"type": "Error", "message": "Error fetching job results, please try again"}),400
 
 
-def scrape(url, tech):
+def scrape(url, tech, site):
     global output_data
     output_data=[]
-    print(len(output_data))
-    scrape_with_crochet(baseUrl=url) # Passing that URL to our Scraping Function
+    scrape_with_crochet(baseUrl=url,site=site) # Passing that URL to our Scraping Function
 
-    time.sleep(30) # Pause the function while the scrapy spider is running
+    time.sleep(45) # Pause the function while the scrapy spider is running
 
     return analyse_description(output_data, tech)
 
 @crochet.run_in_reactor
-def scrape_with_crochet(baseUrl):
+def scrape_with_crochet(baseUrl, site):
     
     # This will connect to the dispatcher that will kind of loop the code between these two functions.
     dispatcher.connect(_crawler_result, signal=signals.item_scraped)
     
-    # This will connect to the ReviewspiderSpider function in our scrapy file and after each yield will pass to the crawler_result function.
-    eventual = crawl_runner.crawl(JobSpider, category=baseUrl)
+    # This will connect to the Spider function in our scrapy file and after each yield will pass to the crawler_result function.
+    eventual = crawl_runner.crawl(JobSpider, url=baseUrl, site=site)
     dispatcher.connect(_crawler_Stop, signals.engine_stopped)
     return eventual
 
@@ -269,17 +268,19 @@ def save_to_db(query_id, data):
 
 def create_url(site, job_type, country, city, province):
     url = ""
-    job = "+".join([word.lower() for word in job_type.split(" ")])
-    print(job)
-    province = province.upper()
-    city = city.lower().capitalize()
     if site == "Indeed":
+        city = "%20".join(city.lower().capitalize().split(" "))
+        province=province.upper()
+        job = "+".join([word.lower() for word in job_type.split(" ")])
         if country =="Canada":
-            url = f"https://ca.indeed.com/jobs?q={job}&l={city}%2C+{province}"
+            if province in provinces:
+                url = f"https://ca.indeed.com/jobs?q={job}&l={city}%2C+{province}"
         else:
-            url = f"https://indeed.com/jobs?q={job}&l={city}%2C+{province}"
+            if province in states: 
+                url = f"https://indeed.com/jobs?q={job}&l={city}%2C+{province}"
     print(url)
     return url
+   
 
 def analyse_description(data, technologies):
     string = r""
@@ -303,5 +304,85 @@ def analyse_description(data, technologies):
 
 def sort_by_tech(self, data):
     return sorted(data, key=lambda x:x["score"], reverse=True)
+
+
+
+provinces = {
+    "ON":"Ontario",
+    "BC":"British Colombia",
+    "QC":"Quebec",
+    "AB":"Alberta",
+    "NB":"New Brunswick",
+    "NL": "Newfoundland and Labrador",
+    "NS":"Nova Scotia",
+    "PE":"Prince Edward Island",
+    "MB":"Manitoba",
+    "SK":"Saskatchewan",
+    "YT":"Yukon",
+    "NT":"Northwest Territories",
+    "NU":"Nunavut"
+}
+
+
+states = {
+    'AK': 'Alaska',
+    'AL': 'Alabama',
+    'AR': 'Arkansas',
+    'AS': 'American Samoa',
+    'AZ': 'Arizona',
+    'CA': 'California',
+    'CO': 'Colorado',
+    'CT': 'Connecticut',
+    'DC': 'District of Columbia',
+    'DE': 'Delaware',
+    'FL': 'Florida',
+    'GA': 'Georgia',
+    'GU': 'Guam',
+    'HI': 'Hawaii',
+    'IA': 'Iowa',
+    'ID': 'Idaho',
+    'IL': 'Illinois',
+    'IN': 'Indiana',
+    'KS': 'Kansas',
+    'KY': 'Kentucky',
+    'LA': 'Louisiana',
+    'MA': 'Massachusetts',
+    'MD': 'Maryland',
+    'ME': 'Maine',
+    'MI': 'Michigan',
+    'MN': 'Minnesota',
+    'MO': 'Missouri',
+    'MP': 'Northern Mariana Islands',
+    'MS': 'Mississippi',
+    'MT': 'Montana',
+    'NA': 'National',
+    'NC': 'North Carolina',
+    'ND': 'North Dakota',
+    'NE': 'Nebraska',
+    'NH': 'New Hampshire',
+    'NJ': 'New Jersey',
+    'NM': 'New Mexico',
+    'NV': 'Nevada',
+    'NY': 'New York',
+    'OH': 'Ohio',
+    'OK': 'Oklahoma',
+    'OR': 'Oregon',
+    'PA': 'Pennsylvania',
+    'PR': 'Puerto Rico',
+    'RI': 'Rhode Island',
+    'SC': 'South Carolina',
+    'SD': 'South Dakota',
+    'TN': 'Tennessee',
+    'TX': 'Texas',
+    'UT': 'Utah',
+    'VA': 'Virginia',
+    'VI': 'Virgin Islands',
+    'VT': 'Vermont',
+    'WA': 'Washington',
+    'WI': 'Wisconsin',
+    'WV': 'West Virginia',
+    'WY': 'Wyoming'
+}
+
 
 

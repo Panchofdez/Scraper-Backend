@@ -1,5 +1,55 @@
-selenium==3.141.0
-Scrapy==2.3.0
+attrs @ file:///home/conda/feedstock_root/build_artifacts/attrs_1597959372343/work
+Automat==20.2.0
+bcrypt @ file:///D:/bld/bcrypt_1597603699121/work
+beautifulsoup4==4.9.1
+certifi==2020.6.20
+cffi @ file:///D:/bld/cffi_1595805721274/work
+chardet==3.0.4
+click==7.1.2
+constantly==15.1.0
 crochet==1.12.0
-itemadapter==0.1.0
-Flask==1.1.1
+cryptography @ file:///D:/bld/cryptography_1598621309630/work
+cssselect==1.1.0
+Flask==1.1.2
+Flask-Bcrypt==0.7.1
+Flask-Cors @ file:///tmp/build/80754af9/flask-cors_1598886879133/work
+Flask-SQLAlchemy @ file:///home/conda/feedstock_root/build_artifacts/flask-sqlalchemy_1594747318500/work
+hyperlink @ file:///home/conda/feedstock_root/build_artifacts/hyperlink_1596631460104/work
+idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1593328102638/work
+incremental==17.5.0
+itemadapter @ file:///home/conda/feedstock_root/build_artifacts/itemadapter_1593694453559/work
+itemloaders @ file:///home/conda/feedstock_root/build_artifacts/itemloaders_1596641972621/work
+itsdangerous==1.1.0
+Jinja2==2.11.2
+jmespath @ file:///home/conda/feedstock_root/build_artifacts/jmespath_1589369830981/work
+lxml @ file:///D:/bld/lxml_1594322926828/work
+MarkupSafe @ file:///C:/ci/markupsafe_1594405949945/work
+parsel @ file:///home/conda/feedstock_root/build_artifacts/parsel_1591122878042/work
+Protego==0.1.16
+proxyscrape==0.3.0
+pyasn1==0.4.8
+pyasn1-modules==0.2.7
+pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1593275161868/work
+PyDispatcher==2.0.5
+PyHamcrest==2.0.2
+PyJWT==1.7.1
+pyOpenSSL==19.1.0
+pywin32==227
+queuelib==1.5.0
+requests==2.24.0
+Scrapy @ file:///D:/bld/scrapy_1596643940905/work
+scrapy-proxy-pool==0.1.9
+scrapy-user-agents==0.1.1
+service-identity==18.1.0
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1590081179328/work
+soupsieve==2.0.1
+SQLAlchemy @ file:///D:/bld/sqlalchemy_1597702078528/work
+Twisted==20.3.0
+ua-parser==0.10.0
+urllib3==1.25.10
+user-agents==2.2.0
+w3lib @ file:///home/conda/feedstock_root/build_artifacts/w3lib_1591173357158/work
+Werkzeug==1.0.1
+wincertstore==0.2
+wrapt==1.12.1
+zope.interface==5.1.0

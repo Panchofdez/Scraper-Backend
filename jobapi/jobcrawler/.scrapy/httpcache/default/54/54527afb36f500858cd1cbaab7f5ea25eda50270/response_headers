@@ -1,0 +1,29 @@
+Cache-Control: no-cache, no-store
+Pragma: no-cache
+Content-Type: text/html; charset=utf-8
+Content-Encoding: gzip
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Vary: Accept-Encoding
+Set-Cookie: recent_history=AQEYVxaB9xTMCAAAAXRM6dksvRxFHxvGz5KdXv25uL8yf0e482BRGc1XDF8dlLLA2MXMrMToMuLLlm3GRrqQY-BFnnWkn4PAYb1sbtSgY96Uj_V8Vh3yJ0JklYknePxsGI_XpiKZCLa7tpis2-ZOUL_O-nTAk5p6cZ0s2llOOjcqbVft98M8nWHN0lcDarzFd34LykIxbdcCja8bG_WDw5bJHDUvVX2wqOtHfley7nJ2MYNzQPtBLCimzo7BYfluYjkAkcrbCdhY8NHpyYfZzGdty-o_6WaOWEFqCq03scWFiIZe-MKWP7JrGlM; Max-Age=7776000; Expires=Tue, 01 Dec 2020 03:43:48 GMT; Path=/; Domain=linkedin.com; Secure; HTTPOnly
+Set-Cookie: JSESSIONID=ajax:3735389824318021932; SameSite=None; Path=/; Domain=.www.linkedin.com; Secure
+Set-Cookie: lang=v=2&lang=en-us; SameSite=None; Path=/; Domain=linkedin.com; Secure
+Set-Cookie: bcookie="v=2&1d204f37-5841-42a4-8c8f-ae463a14aca2"; domain=.linkedin.com; Path=/; Secure; Expires=Fri, 02-Sep-2022 15:21:20 GMT; SameSite=None
+Set-Cookie: bscookie="v=1&2020090203434729bfcca7-a5b1-41f1-8389-945fd634b1dbAQFZovontui9aj1pQv3EjPvW_zj_c1Sj"; domain=.www.linkedin.com; Path=/; Secure; Expires=Fri, 02-Sep-2022 15:21:20 GMT; HttpOnly; SameSite=None
+Set-Cookie: lissc=1; domain=.linkedin.com; Path=/; Secure; Expires=Thu, 02-Sep-2021 03:43:48 GMT; SameSite=None
+Set-Cookie: lidc="b=OGST09:g=1746:u=1:i=1599018228:t=1599104628:s=AQHNTtkF27VQZk90LzHwiRr5XKSs_6NC"; Expires=Thu, 03 Sep 2020 03:43:48 GMT; domain=.linkedin.com; Path=/; SameSite=None; Secure
+Link: <https://static.licdn.com>; rel=preconnect
+X-Fs-Txn-Id: 2b9d0390e910
+X-Fs-Uuid: c127b51b9bda301650ed87cb5d2b0000
+Expect-Ct: max-age=86400, report-uri="https://www.linkedin.com/platform-telemetry/ct"
+X-Xss-Protection: 1; mode=block
+Content-Security-Policy-Report-Only: default-src 'none'; connect-src 'self' www.linkedin.com www.google-analytics.com https://dpm.demdex.net/id lnkd.demdex.net blob: https://linkedin.sc.omtrdc.net/b/ss/ static.licdn.com static-exp1.licdn.com static-exp2.licdn.com static-exp3.licdn.com; script-src 'sha256-THuVhwbXPeTR0HszASqMOnIyxqEgvGyBwSPBKBF/iMc=' 'sha256-PyCXNcEkzRWqbiNr087fizmiBBrq9O6GGD8eV3P09Ik=' 'sha256-2SQ55Erm3CPCb+k03EpNxU9bdV3XL9TnVTriDs7INZ4=' 'sha256-S/KSPe186K/1B0JEjbIXcCdpB97krdzX05S+dHnQjUs=' platform.linkedin.com platform-akam.linkedin.com platform-ecst.linkedin.com platform-azur.linkedin.com static.licdn.com static-exp1.licdn.com static-exp2.licdn.com static-exp3.licdn.com; img-src data: blob: *; font-src data: *; style-src 'self' 'unsafe-inline' static.licdn.com static-exp1.licdn.com static-exp2.licdn.com static-exp3.licdn.com; media-src dms.licdn.com; child-src blob: *; frame-src 'self' lnkd.demdex.net linkedin.cdn.qualaroo.com; manifest-src 'self'; report-uri https://www.linkedin.com/platform-telemetry/csp?f=g
+Content-Security-Policy: default-src *; connect-src 'self' https://media-src.linkedin.com/media/ www.linkedin.com s.c.lnkd.licdn.com m.c.lnkd.licdn.com s.c.exp1.licdn.com s.c.exp2.licdn.com m.c.exp1.licdn.com m.c.exp2.licdn.com wss://*.linkedin.com dms.licdn.com https://dpm.demdex.net/id https://lnkd.demdex.net/event blob: https://accounts.google.com/gsi/status https://linkedin.sc.omtrdc.net/b/ss/ www.google-analytics.com static.licdn.com static-exp1.licdn.com static-exp2.licdn.com static-exp3.licdn.com media.licdn.com media-exp1.licdn.com media-exp2.licdn.com media-exp3.licdn.com; img-src data: blob: *; font-src data: *; style-src 'unsafe-inline' 'self' static-src.linkedin.com *.licdn.com; script-src 'report-sample' 'unsafe-inline' 'unsafe-eval' 'self' spdy.linkedin.com static-src.linkedin.com *.ads.linkedin.com *.licdn.com static.chartbeat.com www.google-analytics.com ssl.google-analytics.com bcvipva02.rightnowtech.com www.bizographics.com sjs.bizographics.com js.bizographics.com d.la4-c1-was.salesforceliveagent.com slideshare.www.linkedin.com https://snap.licdn.com/li.lms-analytics/insight.min.js platform.linkedin.com platform-akam.linkedin.com platform-ecst.linkedin.com platform-azur.linkedin.com; object-src 'none'; media-src blob: *; child-src blob: lnkd-communities: voyager: *; frame-ancestors 'self'; report-uri https://www.linkedin.com/platform-telemetry/csp?f=l
+X-Frame-Options: sameorigin
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=2592000
+X-Li-Fabric: prod-lor1
+X-Li-Pop: afd-prod-esv5
+X-Li-Proto: http/1.1
+X-Li-Uuid: wSe1G5vaMBZQ7YfLXSsAAA==
+X-Msedge-Ref: Ref A: 39B4615552794CBFA0976CD17F67C215 Ref B: YTO01EDGE0509 Ref C: 2020-09-02T03:43:47Z
+Date: Wed, 02 Sep 2020 03:43:48 GMT
