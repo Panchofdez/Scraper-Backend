@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from os import environ
+
 app = Flask(__name__)
 CORS(app)
 
@@ -12,4 +13,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
-from jobapi import routes
+import routes
+
+
+
+if __name__ == "__main__":
+    app.run(debug=False)

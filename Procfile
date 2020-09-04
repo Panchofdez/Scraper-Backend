@@ -1,1 +1,1 @@
-web: gunicorn --chdir jobapi __init__:app
+web: gunicorn app:app

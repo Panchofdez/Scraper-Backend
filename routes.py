@@ -4,12 +4,12 @@ from scrapy import signals
 from scrapy.crawler import CrawlerRunner
 from scrapy.signalmanager import dispatcher
 import os
-from jobapi.jobcrawler.jobcrawler.spiders.job_spider import JobSpider
+from jobcrawler.jobcrawler.spiders.job_spider import JobSpider
 import time 
 import re
 from collections import Counter
-from jobapi.models import User, Query, Job, Favorite
-from jobapi import app, db, bcrypt
+from models import User, Query, Job, Favorite
+from app import app, db, bcrypt
 import uuid
 import jwt
 from functools import wraps
