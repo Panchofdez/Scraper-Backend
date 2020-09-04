@@ -14,6 +14,7 @@ Flask==1.1.2
 Flask-Bcrypt==0.7.1
 Flask-Cors @ file:///tmp/build/80754af9/flask-cors_1598886879133/work
 Flask-SQLAlchemy @ file:///home/conda/feedstock_root/build_artifacts/flask-sqlalchemy_1594747318500/work
+gunicorn==20.0.4
 hyperlink @ file:///home/conda/feedstock_root/build_artifacts/hyperlink_1596631460104/work
 idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1593328102638/work
 incremental==17.5.0
