@@ -35,7 +35,7 @@ def get_user(func):
         return func(user, *args, **kwargs)
     return inner
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def hello():
     return jsonify({"message":"Hello World"})
 
