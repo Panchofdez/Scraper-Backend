@@ -35,7 +35,6 @@ PyDispatcher==2.0.5
 PyHamcrest==2.0.2
 PyJWT==1.7.1
 pyOpenSSL==19.1.0
-pywin32==227
 queuelib==1.5.0
 requests==2.24.0
 Scrapy 
