@@ -239,7 +239,7 @@ def scrape(url, tech, site):
     output_data=[]
     scrape_with_crochet(baseUrl=url,site=site) # Passing that URL to our Scraping Function
 
-    time.sleep(45) # Pause the function while the scrapy spider is running
+    time.sleep(20) # Pause the function while the scrapy spider is running
 
     return analyse_description(output_data, tech)
 
