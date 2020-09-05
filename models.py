@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 
 class User(db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String(50), unique=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -13,6 +14,7 @@ class User(db.Model):
 
 @dataclass
 class Query(db.Model):
+    __tablename__ = 'query'
     id:int
     site:str
     job_type:str
@@ -35,10 +37,11 @@ class Query(db.Model):
 
 @dataclass
 class Job(db.Model):
+    __tablename__ = 'job'
     id:int
     title:str
     company:str
-    rating:int
+    rating:str
     description:str
     link:str
     salary:str
@@ -47,7 +50,7 @@ class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False) 
     company = db.Column(db.String(100), nullable=False)
-    rating = db.Column(db.Integer)
+    rating = db.Column(db.String(50))
     description = db.Column(db.Text)
     link = db.Column(db.Text)
     salary = db.Column(db.String(200))
@@ -55,10 +58,11 @@ class Job(db.Model):
     
 @dataclass
 class Favorite(db.Model):
+    __tablename__ = 'favorite'
     id:int
     title:str
     company:str
-    rating:int
+    rating:str
     description:str
     link:str
     salary:str
@@ -67,7 +71,7 @@ class Favorite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False) 
     company = db.Column(db.String(100), nullable=False)
-    rating = db.Column(db.Integer)
+    rating = db.Column(db.String(50))
     description = db.Column(db.Text)
     link = db.Column(db.Text)
     salary = db.Column(db.String(200))

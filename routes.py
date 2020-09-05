@@ -55,7 +55,6 @@ def signup():
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
             user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password)
             
-            
             db.session.add(user)
             db.session.commit()
             token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
@@ -226,7 +225,6 @@ def scrape_job_data(user):
                 db.session.add(query)
                 db.session.commit()
                 save_to_db(query.id, output["jobs"])
-                query = query
             output["query"] = query
             print(len(output["jobs"]))
             return jsonify(output)
@@ -263,6 +261,7 @@ def save_to_db(query_id, data):
         j = Job(title=job['title'], company=job['company'], rating=job['rating'], description=job['description'],link=job['link'], salary=job['salary'], query_id = query_id)
         db.session.add(j)
     db.session.commit()
+    return
 
 
 
