@@ -1,5 +1,6 @@
 # Scraper-Backend
-Flask API that uses PostgreSQL as its database
+
+[Scraper Website] (https://scraper-pf.herokuapp.com/)
 
 ## Description
 * Uses Scrapy to scrape information from hundreds of Indeed job posts based on the the type of job you are interested in.
@@ -9,4 +10,8 @@ Flask API that uses PostgreSQL as its database
 * Easily sort the job posts based on your preferred stack of technologies or company name or job title
 * Sign up to be able to save your favorite jobs to your profile 
 
-[Scraper Website] (https://scraper-pf.herokuapp.com/)
+## Technologies
+* Python/Flask 
+* PostgresSQL
+
+
