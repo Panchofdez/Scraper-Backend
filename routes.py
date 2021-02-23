@@ -270,11 +270,12 @@ def create_url(site, job_type, country, city, province):
     if site == "Indeed":
         city = "%20".join(city.lower().capitalize().split(" "))
         province=province.upper()
-        job = "+".join([word.lower() for word in job_type.split(" ")])
         if country =="Canada":
+            job = "%20".join([word.lower() for word in job_type.split(" ")])
             if province in provinces:
-                url = f"https://ca.indeed.com/jobs?q={job}&l={city}%2C+{province}"
+                url = f"https://ca.indeed.com/jobs?q={job}&l={city},%20{province}"
         else:
+            job = "+".join([word.lower() for word in job_type.split(" ")])
             if province in states: 
                 url = f"https://indeed.com/jobs?q={job}&l={city}%2C+{province}"
     print(url)
