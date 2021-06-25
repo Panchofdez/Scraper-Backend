@@ -6,9 +6,9 @@ from dataclasses import dataclass
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    public_id = db.Column(db.String(50), unique=True)
+    public_id = db.Column(db.String(100), unique=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable =False)
+    password = db.Column(db.String(200), nullable =False)
     queries = db.relationship('Query', backref='author', lazy=True)
     favorites =  db.relationship('Favorite', backref='author', lazy=True)
 
@@ -48,7 +48,7 @@ class Job(db.Model):
     query_id:int
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False) 
+    title = db.Column(db.String(200), nullable=False) 
     company = db.Column(db.String(100), nullable=False)
     rating = db.Column(db.String(50))
     description = db.Column(db.Text)
@@ -69,7 +69,7 @@ class Favorite(db.Model):
     user_id = int
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False) 
+    title = db.Column(db.String(200), nullable=False) 
     company = db.Column(db.String(100), nullable=False)
     rating = db.Column(db.String(50))
     description = db.Column(db.Text)
