@@ -21,7 +21,7 @@ class JobScraper(object):
         self.chrome_options.add_argument("--headless")
         self.chrome_options.add_argument("--window-size=1920x1080")
         if PRODUCTION:
-            self.chrome_options = os.environ.get("GOOGLE_CHROME_BIN")
+            self.chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
             self.chrome_options.add_argument("--disable-dev-shm-usage")
             self.chrome_options.add_argument("--no-sandbox")
             path = os.environ.get("CHROMEDRIVER_PATH")
