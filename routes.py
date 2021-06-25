@@ -48,14 +48,14 @@ def signup():
             if check_user:
                 return jsonify({"type":"Error", "message":"Email already taken. Sign in instead"}), 400
          
-            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            hashed_password = bcrypt.generate_password_hash(password)
             user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password)
             
             db.session.add(user)
             db.session.commit()
             token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
 
-            return jsonify({"token": token.decode('UTF-8')})
+            return jsonify({"token": token})
         return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
 
     except Exception as e:
@@ -73,7 +73,7 @@ def login():
             user = User.query.filter_by(email=email).first()
             if user and bcrypt.check_password_hash(user.password, password):
                 token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
-                return jsonify({"token": token.decode('UTF-8')})
+                return jsonify({"token": token})
             return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
         return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
 
