@@ -10,7 +10,8 @@ PRODUCTION = True
 
 
 if PRODUCTION:
-    app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
+    #database string needs to start with postgresql:// not postgres:// which is what heroku sets it to by default and is unchangeable
+    app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL').replace("://", "ql://", 1)
     app.debug = False
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:SpicyP#13@localhost/scraperdb'
