@@ -58,7 +58,8 @@ def signup():
             return jsonify({"token": token.decode('UTF-8')})
         return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
 
-    except:
+    except Exception as e:
+        print("ERROR ", e)
         return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
 
 @app.route('/login', methods=['POST'])
@@ -76,7 +77,8 @@ def login():
             return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
         return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
 
-    except:        
+    except Exception as e:
+        print("ERROR", e)        
         return jsonify({"type":"Error", "message":"Email not found. Sign up instead"})
 
 @app.route('/queries', methods=['GET'])
@@ -87,7 +89,8 @@ def get_job_queries(user):
             user_query_history = Query.query.filter_by(user_id=user.id).all()
             return jsonify(user_query_history)
         return jsonify({"type":"Error", "message":"Error fetching your search history"}), 400
-    except:
+    except Exception as e:
+        print("ERROR", e) 
         return jsonify({"type":"Error", "message":"Error fetching your search history"}), 400
 
 @app.route('/queries/<query_id>', methods=['GET'])
@@ -99,7 +102,8 @@ def get_job_data(user, query_id):
             print(len(query.jobs))
             return jsonify({"jobs":query.jobs, "query":query})
         return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
-    except:
+    except Exception as e:
+        print("ERROR", e) 
         return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
 
 @app.route('/queries/<query_id>', methods=['PUT'])
@@ -123,7 +127,8 @@ def update_job_data(user, query_id):
             return jsonify(output)
         else:
             return jsonify({"type":"Error", "message":"Must be signed in"}), 400
-    except:
+    except Exception as e:
+        print("ERROR", e) 
         return jsonify({"type":"Error", "message": "Error scraping job data"}), 400
 
 @app.route('/queries/<query_id>', methods=['DELETE'])
@@ -142,7 +147,8 @@ def delete_query(user, query_id):
             return jsonify({"type":"Success", "message": "Successfuly deleted search query"})
         else:
             return jsonify({"type":"Error","message": "Must be signed in!"}), 400
-    except:
+    except Exception as e:
+        print("ERROR", e) 
         return jsonify({"type":"Error","message":"Unable to process request"}), 400
 
        
@@ -163,7 +169,7 @@ def analyse(query_id):
             print(len(output["jobs"]))
             return jsonify(output)
         return jsonify({"type":"Error","message": "Error fetching job results"}), 400
-    except:
+    except Exception as e:
         return jsonify({"type":"Error","message": "Error fetching job results"}), 400
 
 
@@ -175,7 +181,8 @@ def fetch_favorite_jobs(user):
             return jsonify(user.favorites)
         else:
             return jsonify({"type":"Error", "message": "Must be signed in"}), 400
-    except:
+    except Exception as e:
+        print("ERROR", e) 
         return jsonify({"type":"Error", "message": "Unable to fetch results, please try again"}), 400
 
 @app.route('/favorites', methods=['POST'])
@@ -191,7 +198,8 @@ def favorite_job(user):
             return jsonify({"type":"Success", "message":"Successfully saved job to your profile"})
         else:
             return jsonify({"type":"Error", "message": "You must be signed in to access this feature"}), 400
-    except:
+    except Exception as e:
+        print("ERROR", e) 
         return jsonify({"type":"Error","message": "Unable to save job to your profile, please try again"}), 400
 
 @app.route('/scrape', methods=['POST'])

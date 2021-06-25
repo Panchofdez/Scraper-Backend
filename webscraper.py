@@ -32,7 +32,7 @@ class JobScraper(object):
     def glassdoor(self,job_type, num_jobs=30):
         
         self.driver.get("https://glassdoor.com/Job/index.htm")
-       
+        self.driver.implicitly_wait(3)
         
         search = self.driver.find_element_by_id("KeywordSearch")
         location = self.driver.find_element_by_id("LocationSearch")
