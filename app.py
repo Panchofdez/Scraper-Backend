@@ -6,16 +6,16 @@ from os import environ
 
 app = Flask(__name__)
 CORS(app)
-ENV = "prod"
+PRODUCTION = True
 
 
-if ENV == "dev":
+if PRODUCTION:
+    app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
+    app.debug = False
+else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:SpicyP#13@localhost/scraperdb'
     app.debug = True
 
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
-    app.debug = False
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = environ.get('MY_SECRET_KEY')
 

@@ -1,10 +1,5 @@
 from flask import Flask, jsonify, request, redirect, url_for
-import crochet
-from scrapy import signals
-from scrapy.crawler import CrawlerRunner
-from scrapy.signalmanager import dispatcher
 import os
-from jobcrawler.jobcrawler.spiders.job_spider import JobSpider
 import time 
 import re
 from collections import Counter
@@ -15,9 +10,10 @@ import jwt
 from functools import wraps
 from dataclasses import asdict
 from datetime import datetime
+from webscraper import JobScraper 
 
-crochet.setup()
-crawl_runner = CrawlerRunner()
+
+scraper = JobScraper()
 
 def get_user(func):
     #decorator to get the user that's signed in
@@ -203,18 +199,16 @@ def favorite_job(user):
 def scrape_job_data(user):
     try:
         if request.method == 'POST':
+            print(request)
             site = request.json["site"]
             job_type = request.json["type"]
             city = request.json["city"]
             country = request.json["country"]
             province = request.json["province"]
             technologies = request.json["technologies"]
-            url = create_url(site, job_type, country, city, province)
-
-            if url == "":
-                return jsonify({"type": "Error", "message": "Error fetching job results, please try again"}),400
-
-            output =  scrape(url, technologies , site) # Passing to the Scrape function
+            print(job_type, technologies)
+           
+            output =  scrape(job_type, technologies , site) # Passing to the Scrape function
             if len(output["jobs"]) == 0:
                 return jsonify({"type": "Error", "message": "No results found..."}),400
 
@@ -226,35 +220,23 @@ def scrape_job_data(user):
                 db.session.commit()
                 save_to_db(query.id, output["jobs"])
             output["query"] = query
-            print(len(output["jobs"]))
+            print("NUM JOBS ", len(output["jobs"]))
             return jsonify(output)
-    except:
+    except Exception as e:
+        print("Error", e)
         return jsonify({"type": "Error", "message": "Error fetching job results, please try again"}),400
 
 
-def scrape(url, tech, site):
+def scrape(job_type, tech, site):
     global output_data
     output_data=[]
-    scrape_with_crochet(baseUrl=url,site=site) # Passing that URL to our Scraping Function
-
-    time.sleep(20) # Pause the function while the scrapy spider is running
-
+    if site.lower() == 'indeed':
+        output_data = scraper.indeed(job_type)
+    elif site.lower() == 'glassdoor':
+        output_data = scraper.glassdoor(job_type)
+    
+  
     return analyse_description(output_data, tech)
-
-@crochet.run_in_reactor
-def scrape_with_crochet(baseUrl, site):
-    
-    # This will connect to the dispatcher that will kind of loop the code between these two functions.
-    dispatcher.connect(_crawler_result, signal=signals.item_scraped)
-    
-    # This will connect to the Spider function in our scrapy file and after each yield will pass to the crawler_result function.
-    eventual = crawl_runner.crawl(JobSpider, url=baseUrl, site=site)
-    dispatcher.connect(_crawler_Stop, signals.engine_stopped)
-    return eventual
-
-#This will append the data to the output data list.
-def _crawler_result(item, response, spider):
-    output_data.append(dict(item))
 
 def save_to_db(query_id, data):
     for job in data:
@@ -299,6 +281,7 @@ def analyse_description(data, technologies):
         words.extend(matches)
         tech = Counter(matches)
         job["technologies"] = tech
+        del job["description"]
     counter = Counter(words)
     return {"jobs":data, "counter":counter}
 
