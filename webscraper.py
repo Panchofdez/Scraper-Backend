@@ -11,12 +11,11 @@ import re
 import os
 from collections import Counter
 
-PRODUCTION = False
+PRODUCTION = True
 
 
 class JobScraper(object):
     chrome_options = Options()
-    path = r"C:\Program Files (x86)\chromedriver_win32\chromedriver.exe"
 
     def __init__(self):
         self.chrome_options.add_argument("--headless")
@@ -25,8 +24,10 @@ class JobScraper(object):
             self.chrome_options = os.environ.get("GOOGLE_CHROME_BIN")
             self.chrome_options.add_argument("--disable-dev-shm-usage")
             self.chrome_options.add_argument("--no-sandbox")
-            self.path = os.environ.get("CHROMEDRIVER_PATH")
-        self.driver = webdriver.Chrome(executable_path =self.path, chrome_options=self.chrome_options)
+            path = os.environ.get("CHROMEDRIVER_PATH")
+        else:
+            path = r"C:\Program Files (x86)\chromedriver_win32\chromedriver.exe"
+        self.driver = webdriver.Chrome(executable_path =path, chrome_options=self.chrome_options)
 
     def glassdoor(self,job_type, num_jobs=30):
         
