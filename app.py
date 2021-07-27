@@ -6,7 +6,7 @@ from os import environ
 
 app = Flask(__name__)
 CORS(app)
-PRODUCTION = True
+PRODUCTION = False
 
 
 if PRODUCTION:

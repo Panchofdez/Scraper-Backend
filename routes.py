@@ -1,5 +1,10 @@
 from flask import Flask, jsonify, request, redirect, url_for
+import crochet
+from scrapy import signals
+from scrapy.crawler import CrawlerRunner
+from scrapy.signalmanager import dispatcher
 import os
+from jobcrawler.jobcrawler.spiders.job_spider import JobSpider
 import time 
 import re
 from collections import Counter
@@ -10,10 +15,9 @@ import jwt
 from functools import wraps
 from dataclasses import asdict
 from datetime import datetime
-from webscraper import JobScraper 
 
-
-scraper = JobScraper()
+crochet.setup()
+crawl_runner = CrawlerRunner()
 
 def get_user(func):
     #decorator to get the user that's signed in
@@ -48,18 +52,17 @@ def signup():
             if check_user:
                 return jsonify({"type":"Error", "message":"Email already taken. Sign in instead"}), 400
          
-            hashed_password = bcrypt.generate_password_hash(password)
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
             user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password)
             
             db.session.add(user)
             db.session.commit()
             token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
 
-            return jsonify({"token": token})
+            return jsonify({"token": token.decode('UTF-8')})
         return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
 
-    except Exception as e:
-        print("ERROR ", e)
+    except:
         return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
 
 @app.route('/login', methods=['POST'])
@@ -73,12 +76,11 @@ def login():
             user = User.query.filter_by(email=email).first()
             if user and bcrypt.check_password_hash(user.password, password):
                 token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
-                return jsonify({"token": token})
+                return jsonify({"token": token.decode('UTF-8')})
             return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
         return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
 
-    except Exception as e:
-        print("ERROR", e)        
+    except:        
         return jsonify({"type":"Error", "message":"Email not found. Sign up instead"})
 
 @app.route('/queries', methods=['GET'])
@@ -89,8 +91,7 @@ def get_job_queries(user):
             user_query_history = Query.query.filter_by(user_id=user.id).all()
             return jsonify(user_query_history)
         return jsonify({"type":"Error", "message":"Error fetching your search history"}), 400
-    except Exception as e:
-        print("ERROR", e) 
+    except:
         return jsonify({"type":"Error", "message":"Error fetching your search history"}), 400
 
 @app.route('/queries/<query_id>', methods=['GET'])
@@ -102,8 +103,7 @@ def get_job_data(user, query_id):
             print(len(query.jobs))
             return jsonify({"jobs":query.jobs, "query":query})
         return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
-    except Exception as e:
-        print("ERROR", e) 
+    except:
         return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
 
 @app.route('/queries/<query_id>', methods=['PUT'])
@@ -127,8 +127,7 @@ def update_job_data(user, query_id):
             return jsonify(output)
         else:
             return jsonify({"type":"Error", "message":"Must be signed in"}), 400
-    except Exception as e:
-        print("ERROR", e) 
+    except:
         return jsonify({"type":"Error", "message": "Error scraping job data"}), 400
 
 @app.route('/queries/<query_id>', methods=['DELETE'])
@@ -147,8 +146,7 @@ def delete_query(user, query_id):
             return jsonify({"type":"Success", "message": "Successfuly deleted search query"})
         else:
             return jsonify({"type":"Error","message": "Must be signed in!"}), 400
-    except Exception as e:
-        print("ERROR", e) 
+    except:
         return jsonify({"type":"Error","message":"Unable to process request"}), 400
 
        
@@ -169,7 +167,7 @@ def analyse(query_id):
             print(len(output["jobs"]))
             return jsonify(output)
         return jsonify({"type":"Error","message": "Error fetching job results"}), 400
-    except Exception as e:
+    except:
         return jsonify({"type":"Error","message": "Error fetching job results"}), 400
 
 
@@ -181,8 +179,7 @@ def fetch_favorite_jobs(user):
             return jsonify(user.favorites)
         else:
             return jsonify({"type":"Error", "message": "Must be signed in"}), 400
-    except Exception as e:
-        print("ERROR", e) 
+    except:
         return jsonify({"type":"Error", "message": "Unable to fetch results, please try again"}), 400
 
 @app.route('/favorites', methods=['POST'])
@@ -198,8 +195,7 @@ def favorite_job(user):
             return jsonify({"type":"Success", "message":"Successfully saved job to your profile"})
         else:
             return jsonify({"type":"Error", "message": "You must be signed in to access this feature"}), 400
-    except Exception as e:
-        print("ERROR", e) 
+    except:
         return jsonify({"type":"Error","message": "Unable to save job to your profile, please try again"}), 400
 
 @app.route('/scrape', methods=['POST'])
@@ -207,16 +203,18 @@ def favorite_job(user):
 def scrape_job_data(user):
     try:
         if request.method == 'POST':
-            print(request)
             site = request.json["site"]
             job_type = request.json["type"]
             city = request.json["city"]
             country = request.json["country"]
             province = request.json["province"]
             technologies = request.json["technologies"]
-            print(job_type, technologies)
-           
-            output =  scrape(job_type, technologies , site) # Passing to the Scrape function
+            url = create_url(site, job_type, country, city, province)
+
+            if url == "":
+                return jsonify({"type": "Error", "message": "Error fetching job results, please try again"}),400
+
+            output =  scrape(url, technologies , site) # Passing to the Scrape function
             if len(output["jobs"]) == 0:
                 return jsonify({"type": "Error", "message": "No results found..."}),400
 
@@ -228,23 +226,35 @@ def scrape_job_data(user):
                 db.session.commit()
                 save_to_db(query.id, output["jobs"])
             output["query"] = query
-            print("NUM JOBS ", len(output["jobs"]))
+            print(len(output["jobs"]))
             return jsonify(output)
-    except Exception as e:
-        print("Error", e)
+    except:
         return jsonify({"type": "Error", "message": "Error fetching job results, please try again"}),400
 
 
-def scrape(job_type, tech, site):
+def scrape(url, tech, site):
     global output_data
     output_data=[]
-    if site.lower() == 'indeed':
-        output_data = scraper.indeed(job_type)
-    elif site.lower() == 'glassdoor':
-        output_data = scraper.glassdoor(job_type)
-    
-  
+    scrape_with_crochet(baseUrl=url,site=site) # Passing that URL to our Scraping Function
+
+    time.sleep(20) # Pause the function while the scrapy spider is running
+
     return analyse_description(output_data, tech)
+
+@crochet.run_in_reactor
+def scrape_with_crochet(baseUrl, site):
+    
+    # This will connect to the dispatcher that will kind of loop the code between these two functions.
+    dispatcher.connect(_crawler_result, signal=signals.item_scraped)
+    
+    # This will connect to the Spider function in our scrapy file and after each yield will pass to the crawler_result function.
+    eventual = crawl_runner.crawl(JobSpider, url=baseUrl, site=site)
+    dispatcher.connect(_crawler_Stop, signals.engine_stopped)
+    return eventual
+
+#This will append the data to the output data list.
+def _crawler_result(item, response, spider):
+    output_data.append(dict(item))
 
 def save_to_db(query_id, data):
     for job in data:
@@ -268,6 +278,10 @@ def create_url(site, job_type, country, city, province):
             job = "+".join([word.lower() for word in job_type.split(" ")])
             if province in states: 
                 url = f"https://indeed.com/jobs?q={job}&l={city}%2C+{province}"
+
+    elif site == "Stack Overflow":
+        job = "+".join([word.lower() for word in job_type.split(" ")])
+        url = f"https://stackoverflow.com/jobs?q={job}&l={city}%2C+{province}%2C+{country}&d=20&u=km"
     print(url)
     return url
    
@@ -289,7 +303,6 @@ def analyse_description(data, technologies):
         words.extend(matches)
         tech = Counter(matches)
         job["technologies"] = tech
-        del job["description"]
     counter = Counter(words)
     return {"jobs":data, "counter":counter}
 
