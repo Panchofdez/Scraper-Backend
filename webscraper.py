@@ -11,8 +11,11 @@ import re
 import os
 from collections import Counter
 
-PRODUCTION = True
+PRODUCTION = False
 
+'''
+    Selenium script to scrape job posts from Indeed and Glassdoor. Currently is not being used 
+'''
 
 class JobScraper(object):
     chrome_options = Options()

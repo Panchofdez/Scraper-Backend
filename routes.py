@@ -20,7 +20,7 @@ crochet.setup()
 crawl_runner = CrawlerRunner()
 
 def get_user(func):
-    #decorator to get the user that's signed in
+    '''Decorator that acts as a middleware to check if a user is signed before accessing route'''
     @wraps(func)
     def inner(*args, **kwargs):
         auth_header = request.headers.get('Authorization')
@@ -282,6 +282,7 @@ def save_to_db(query_id, data):
 
 
 def create_url(site, job_type, country, city, province):
+    '''Based on the website and location and job information it will construct the url to scrape'''
     url = ""
     if site == "Indeed":
         city = "%20".join(city.lower().capitalize().split(" "))
@@ -305,6 +306,7 @@ def create_url(site, job_type, country, city, province):
    
 
 def analyse_description(data, technologies):
+    '''Uses regex to match keywords (technologies) and creates a counter storing how many times the words appear in the given description'''
     string = r""
     for word in technologies:
         word = word.lower()
