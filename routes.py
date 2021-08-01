@@ -43,7 +43,6 @@ def hello():
 @app.route("/signup", methods=['POST'])
 def signup():
     try:
-        print("Arrived")
         if request.method == 'POST':
             email = request.json['email']
             password = request.json['password']
@@ -57,7 +56,6 @@ def signup():
          
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-            print("hashed password", hashed_password)
             user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password)
             
             db.session.add(user)
@@ -81,15 +79,10 @@ def login():
             if not email or not password:
                 return jsonify({"type":"Error", "message":"Email and password are required"}), 400
             user = User.query.filter_by(email=email).first()
-            print("USER", user)
-            print(user.password)
-            print(user.public_id)
-            print(type(user.public_id))
+
             if user and bcrypt.check_password_hash(user.password, password):
-                print("arrived")
-                print(app.config['SECRET_KEY'])
                 token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'], algorithm="HS256")
-                print("Token", token)
+
                 return jsonify({"token": token})
             return jsonify({"type":"Error", "message":"User not found"}), 400
 
@@ -143,7 +136,8 @@ def update_job_data(user, query_id):
             return jsonify(output)
         else:
             return jsonify({"type":"Error", "message":"Must be signed in"}), 400
-    except:
+    except Exception as e:
+        print("ERROR: ", e)
         return jsonify({"type":"Error", "message": "Error scraping job data"}), 400
 
 @app.route('/queries/<query_id>', methods=['DELETE'])
@@ -162,7 +156,8 @@ def delete_query(user, query_id):
             return jsonify({"type":"Success", "message": "Successfuly deleted search query"})
         else:
             return jsonify({"type":"Error","message": "Must be signed in!"}), 400
-    except:
+    except Exception as e:
+        print("ERROR: ", e)
         return jsonify({"type":"Error","message":"Unable to process request"}), 400
 
        
@@ -183,7 +178,8 @@ def analyse(query_id):
             print(len(output["jobs"]))
             return jsonify(output)
         return jsonify({"type":"Error","message": "Error fetching job results"}), 400
-    except:
+    except Exception as e:
+        print("ERROR: ", e)
         return jsonify({"type":"Error","message": "Error fetching job results"}), 400
 
 
@@ -195,7 +191,7 @@ def fetch_favorite_jobs(user):
             return jsonify(user.favorites)
         else:
             return jsonify({"type":"Error", "message": "Must be signed in"}), 400
-    except:
+    except Exception as e:
         return jsonify({"type":"Error", "message": "Unable to fetch results, please try again"}), 400
 
 @app.route('/favorites', methods=['POST'])
@@ -211,7 +207,7 @@ def favorite_job(user):
             return jsonify({"type":"Success", "message":"Successfully saved job to your profile"})
         else:
             return jsonify({"type":"Error", "message": "You must be signed in to access this feature"}), 400
-    except:
+    except Exception as e:
         return jsonify({"type":"Error","message": "Unable to save job to your profile, please try again"}), 400
 
 @app.route('/scrape', methods=['POST'])
@@ -247,7 +243,8 @@ def scrape_job_data(user):
             for job in output["jobs"]: #delete the description from the job object because we dont need that info on the frontend
                 del job["description"]
             return jsonify(output)
-    except:
+    except Exception as e:
+        print("ERROR: ", e)
         return jsonify({"type": "Error", "message": "Error fetching job results, please try again"}),400
 
 
