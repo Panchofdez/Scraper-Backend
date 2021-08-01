@@ -28,9 +28,10 @@ def get_user(func):
         if auth_header:
             token = auth_header.replace("Bearer ", "")
             try:
-                data = jwt.decode(token, app.config['SECRET_KEY'])
+                data = jwt.decode(token, app.config['SECRET_KEY'],  algorithms=["HS256"])
                 user = User.query.filter_by(public_id=data['public_id']).first()
-            except:
+            except Exception as e:
+                print("ERROR in getting user: ", e)
                 user= None
         return func(user, *args, **kwargs)
     return inner
@@ -42,9 +43,11 @@ def hello():
 @app.route("/signup", methods=['POST'])
 def signup():
     try:
+        print("Arrived")
         if request.method == 'POST':
             email = request.json['email']
             password = request.json['password']
+            print(email, password)
             if not email or not password:
                 return jsonify({"type":"Error", "message":"Email and password are required"})
             check_user = User.query.filter_by(email=email).first()
@@ -53,16 +56,19 @@ def signup():
                 return jsonify({"type":"Error", "message":"Email already taken. Sign in instead"}), 400
          
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+            print("hashed password", hashed_password)
             user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password)
             
             db.session.add(user)
             db.session.commit()
-            token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
+            token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'],algorithm="HS256" )
 
-            return jsonify({"token": token.decode('UTF-8')})
-        return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
+            return jsonify({"token": token})
+        
 
-    except:
+    except Exception as e:
+        print("ERROR: ", e)
         return jsonify({"type":"Error", "message":"Error creating account, please try again"}), 400
 
 @app.route('/login', methods=['POST'])
@@ -71,17 +77,25 @@ def login():
         if request.method == 'POST':
             email = request.json['email']
             password = request.json['password']
+            print(email, password)
             if not email or not password:
                 return jsonify({"type":"Error", "message":"Email and password are required"}), 400
             user = User.query.filter_by(email=email).first()
+            print("USER", user)
+            print(user.password)
+            print(user.public_id)
+            print(type(user.public_id))
             if user and bcrypt.check_password_hash(user.password, password):
-                token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'])
-                return jsonify({"token": token.decode('UTF-8')})
-            return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
-        return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
+                print("arrived")
+                print(app.config['SECRET_KEY'])
+                token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'], algorithm="HS256")
+                print("Token", token)
+                return jsonify({"token": token})
+            return jsonify({"type":"Error", "message":"User not found"}), 400
 
-    except:        
-        return jsonify({"type":"Error", "message":"Email not found. Sign up instead"})
+    except Exception as e:    
+        print("ERROR: ", e)    
+        return jsonify({"type":"Error", "message":"Email not found. Sign up instead"}), 400
 
 @app.route('/queries', methods=['GET'])
 @get_user
@@ -90,8 +104,9 @@ def get_job_queries(user):
         if user:
             user_query_history = Query.query.filter_by(user_id=user.id).all()
             return jsonify(user_query_history)
-        return jsonify({"type":"Error", "message":"Error fetching your search history"}), 400
-    except:
+        return jsonify({"type":"Error", "message":"No user found"}), 400
+    except Exception as e:
+        print("ERROR: ", e)
         return jsonify({"type":"Error", "message":"Error fetching your search history"}), 400
 
 @app.route('/queries/<query_id>', methods=['GET'])
@@ -102,8 +117,9 @@ def get_job_data(user, query_id):
             query = Query.query.get(query_id)
             print(len(query.jobs))
             return jsonify({"jobs":query.jobs, "query":query})
-        return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
-    except:
+        return jsonify({"type":"Error", "message" :"No user found"}), 400
+    except Exception as e:
+        print("ERROR: ", e)
         return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
 
 @app.route('/queries/<query_id>', methods=['PUT'])
@@ -227,6 +243,9 @@ def scrape_job_data(user):
                 save_to_db(query.id, output["jobs"])
             output["query"] = query
             print(len(output["jobs"]))
+
+            for job in output["jobs"]: #delete the description from the job object because we dont need that info on the frontend
+                del job["description"]
             return jsonify(output)
     except:
         return jsonify({"type": "Error", "message": "Error fetching job results, please try again"}),400
@@ -281,6 +300,8 @@ def create_url(site, job_type, country, city, province):
 
     elif site == "Stack Overflow":
         job = "+".join([word.lower() for word in job_type.split(" ")])
+        city = "+".join([word.lower() for word in city.split(" ")])
+        country  = "+".join([word.lower() for word in country.split(" ")])
         url = f"https://stackoverflow.com/jobs?q={job}&l={city}%2C+{province}%2C+{country}&d=20&u=km"
     print(url)
     return url
