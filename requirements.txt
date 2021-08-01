@@ -47,7 +47,6 @@ service-identity==21.1.0
 six==1.16.0
 SQLAlchemy==1.4.19
 Twisted==21.7.0
-twisted-iocpsupport==1.0.1
 typing-extensions==3.10.0.0
 urllib3==1.26.6
 w3lib==1.22.0
