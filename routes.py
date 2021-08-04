@@ -45,7 +45,7 @@ def signup():
     try:
         if request.method == 'POST':
             email = request.json['email']
-            password = request.json['password1']
+            password = request.json['password']
             password2 = request.json['password2']
             print(email, password, password2)
             if not email or not password:
