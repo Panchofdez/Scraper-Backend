@@ -8,7 +8,7 @@ import os
 
 app = Flask(__name__)
 CORS(app)
-PRODUCTION = False
+PRODUCTION = True
 
 
 
