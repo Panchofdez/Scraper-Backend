@@ -49,10 +49,10 @@ def signup():
             password2 = request.json['password2']
             print(email, password, password2)
             if not email or not password:
-                return jsonify({"type":"Error", "message":"Email and password are required"})
+                return jsonify({"type":"Error", "message":"Email and password are required"}), 400
 
             if password != password2:
-                return jsonify({"type":"Error", "message":"Password and confirm password do not match"})
+                return jsonify({"type":"Error", "message":"Password and confirm password do not match"}), 400
             check_user = User.query.filter_by(email=email).first()
         
             if check_user:
