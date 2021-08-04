@@ -45,20 +45,20 @@ def signup():
     try:
         if request.method == 'POST':
             email = request.json['email']
-            password1 = request.json['password1']
+            password = request.json['password1']
             password2 = request.json['password2']
-            print(email, password1, password2)
-            if not email or not password1:
+            print(email, password, password2)
+            if not email or not password:
                 return jsonify({"type":"Error", "message":"Email and password are required"})
 
-            if password1 != password2:
+            if password != password2:
                 return jsonify({"type":"Error", "message":"Password and confirm password do not match"})
             check_user = User.query.filter_by(email=email).first()
         
             if check_user:
                 return jsonify({"type":"Error", "message":"Email already taken. Sign in instead"}), 400
          
-            hashed_password = bcrypt.generate_password_hash(password1).decode('utf-8') # we don't store the passwords directly we hash them first
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8') # we don't store the passwords directly we hash them first
 
             user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password) #create the user
             
