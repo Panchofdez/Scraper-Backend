@@ -233,6 +233,7 @@ def fetch_favorite_jobs(user):
         else:
             return jsonify({"type":"Error", "message": "Must be signed in"}), 400
     except Exception as e:
+        print("ERROR", e)
         return jsonify({"type":"Error", "message": "Unable to fetch results, please try again"}), 400
 
 @app.route('/favorites', methods=['POST'])
@@ -242,7 +243,8 @@ def favorite_job(user):
     try:
         if user and request.method == 'POST':
             job= request.json["job"]
-            f_job = Favorite(title=job['title'], company=job['company'], rating=job['rating'], description=job['description'],link=job['link'], salary=job['salary'], user_id=user.id)
+            print(job)
+            f_job = Favorite(title=job['title'], company=job['company'], rating=job['rating'],link=job['link'], salary=job['salary'], user_id=user.id)
             db.session.add(f_job)
             db.session.commit()
 
@@ -250,6 +252,7 @@ def favorite_job(user):
         else:
             return jsonify({"type":"Error", "message": "You must be signed in to access this feature"}), 400
     except Exception as e:
+        print("ERROR", e)
         return jsonify({"type":"Error","message": "Unable to save job to your profile, please try again"}), 400
 
 @app.route('/favorites/<favorite_id>', methods=['DELETE'])
@@ -260,7 +263,7 @@ def delete_favorite_job(user, favorite_id):
         if user and favorite_id and request.method == 'DELETE':
             favorite = Favorite.query.get(favorite_id)
             db.session.delete(favorite)
-            db.commit()
+            db.session.commit()
 
             return jsonify({"type":"Success", "message":"Successfully deleted job from your profile"})
         
