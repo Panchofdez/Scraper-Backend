@@ -22,6 +22,7 @@ class Query(db.Model):
     city:str
     country:str
     province:str
+    technologies:str
     user_id:int
 
 
@@ -32,6 +33,7 @@ class Query(db.Model):
     city = db.Column(db.String(100), nullable=False)
     country =db.Column(db.String(100), nullable=False)
     province = db.Column(db.String(100), nullable=False)
+    technologies = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     jobs = db.relationship('Job', backref='author', lazy=True)
 

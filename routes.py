@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, redirect, url_for
+from flask import Flask, json, jsonify, request, redirect, url_for
 import crochet
 from scrapy import signals
 from scrapy.crawler import CrawlerRunner
@@ -45,21 +45,27 @@ def signup():
     try:
         if request.method == 'POST':
             email = request.json['email']
-            password = request.json['password']
-            print(email, password)
-            if not email or not password:
+            password1 = request.json['password1']
+            password2 = request.json['password2']
+            print(email, password1, password2)
+            if not email or not password1:
                 return jsonify({"type":"Error", "message":"Email and password are required"})
+
+            if password1 != password2:
+                return jsonify({"type":"Error", "message":"Password and confirm password do not match"})
             check_user = User.query.filter_by(email=email).first()
         
             if check_user:
                 return jsonify({"type":"Error", "message":"Email already taken. Sign in instead"}), 400
          
-            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            hashed_password = bcrypt.generate_password_hash(password1).decode('utf-8') # we don't store the passwords directly we hash them first
 
-            user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password)
+            user = User(public_id=str(uuid.uuid4()), email=email, password=hashed_password) #create the user
             
+            #save to the db
             db.session.add(user)
-            db.session.commit()
+            db.session.commit() 
+            #get the user token which will be used in the frontend to determine if user is signed in or not
             token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'],algorithm="HS256" )
 
             return jsonify({"token": token})
@@ -80,7 +86,7 @@ def login():
                 return jsonify({"type":"Error", "message":"Email and password are required"}), 400
             user = User.query.filter_by(email=email).first()
 
-            if user and bcrypt.check_password_hash(user.password, password):
+            if user and bcrypt.check_password_hash(user.password, password): #if a valid user and the passwords match proceed with signing in and recieving the token
                 token = jwt.encode({'public_id':user.public_id}, app.config['SECRET_KEY'], algorithm="HS256")
 
                 return jsonify({"token": token})
@@ -93,6 +99,7 @@ def login():
 @app.route('/queries', methods=['GET'])
 @get_user
 def get_job_queries(user):
+    '''Retrieves all job queries that a user has searched'''
     try:
         if user:
             user_query_history = Query.query.filter_by(user_id=user.id).all()
@@ -105,19 +112,32 @@ def get_job_queries(user):
 @app.route('/queries/<query_id>', methods=['GET'])
 @get_user
 def get_job_data(user, query_id):
+    '''Retrieves the results from a given query'''
     try:
-        if user:
+        if user and request.method == 'GET':
+            
             query = Query.query.get(query_id)
-            print(len(query.jobs))
-            return jsonify({"jobs":query.jobs, "query":query})
-        return jsonify({"type":"Error", "message" :"No user found"}), 400
+            technologies = query.technologies.split()
+            print("Technologies", technologies)
+            data = []
+            for job in query.jobs:
+                data.append(asdict(job))
+
+            output = analyse_description(data, technologies)
+            output["query"] = query
+            for job in output["jobs"]: #delete the description from the job object because we dont need that info on the frontend
+                del job["description"]
+            print(len(output["jobs"]))
+            return jsonify(output)
+        return jsonify({"type":"Error","message": "Error fetching job results"}), 400
     except Exception as e:
         print("ERROR: ", e)
-        return jsonify({"type":"Error", "message" :"Error fetching job results"}), 400
+        return jsonify({"type":"Error","message": "Error fetching job results"}), 400
 
 @app.route('/queries/<query_id>', methods=['PUT'])
 @get_user
 def update_job_data(user, query_id):
+    '''Refreshes or renews the job results for a given query'''
     try:
         if user:
             technologies = request.json["technologies"]
@@ -125,10 +145,15 @@ def update_job_data(user, query_id):
             if user.id != query.user_id:
                 return jsonify({"type":"Error", "message":"Unauthorized Request"}), 403
             url = create_url(query.site, query.job_type, query.country, query.city, query.province)
+
+            #update the query information and save to db
             query.date = datetime.now()
+            query.technologies = " ".join(technologies)
             for job in query.jobs:
                 db.session.delete(job)
             db.session.commit()
+            
+            #do the scraping again
             output =  scrape(url, technologies, query.site)
             save_to_db(query.id, output["jobs"])
             output["query"] = query
@@ -143,15 +168,17 @@ def update_job_data(user, query_id):
 @app.route('/queries/<query_id>', methods=['DELETE'])
 @get_user
 def delete_query(user, query_id):
+    '''Delete a query from a user's search history'''
     try:
         if user:
             query = Query.query.get(query_id)
             if user.id != query.user_id:
                 return jsonify({"type": "Error", "message":"Unauthorized Request"}), 403  
+            #delete all the jobs in the db that was part of the given query
             for job in query.jobs:
                 db.session.delete(job)
 
-            db.session.delete(query)
+            db.session.delete(query) #then delete the query itself
             db.session.commit()
             return jsonify({"type":"Success", "message": "Successfuly deleted search query"})
         else:
@@ -164,17 +191,30 @@ def delete_query(user, query_id):
 
 
 @app.route('/analyse/<query_id>',methods=['POST'])
-def analyse(query_id):
+@get_user
+def analyse(user, query_id):
+    '''Given a new list of technologies it will analyse the descriptions of each job post of the given query again and return the results'''
     try:
-        if request.method == 'POST':
+        if user and request.method == 'POST':
+            
             technologies = request.json["technologies"]
             query = Query.query.get(query_id)
+
+            #update the query information to the recent technologies
+            query.technologies = " ".join(technologies)
+            db.session.commit()
+
+            
+            print("Technologies", technologies)
             data = []
             for job in query.jobs:
                 data.append(asdict(job))
 
             output = analyse_description(data, technologies)
             output["query"] = query
+
+            for job in output["jobs"]: #delete the description from the job object because we dont need that info on the frontend
+                del job["description"]
             print(len(output["jobs"]))
             return jsonify(output)
         return jsonify({"type":"Error","message": "Error fetching job results"}), 400
@@ -186,6 +226,7 @@ def analyse(query_id):
 @app.route('/favorites' , methods=['GET'])
 @get_user
 def fetch_favorite_jobs(user):
+    '''Retrieves the saved/favorited jobs of a user'''
     try:
         if user:  
             return jsonify(user.favorites)
@@ -197,6 +238,7 @@ def fetch_favorite_jobs(user):
 @app.route('/favorites', methods=['POST'])
 @get_user
 def favorite_job(user):
+    '''Saves or favorites a job post to a user's profile'''
     try:
         if user and request.method == 'POST':
             job= request.json["job"]
@@ -210,9 +252,28 @@ def favorite_job(user):
     except Exception as e:
         return jsonify({"type":"Error","message": "Unable to save job to your profile, please try again"}), 400
 
+@app.route('/favorites/<favorite_id>', methods=['DELETE'])
+@get_user
+def delete_favorite_job(user, favorite_id):
+    '''Deletes a favorited job post from the user's saved jobs'''
+    try:
+        if user and favorite_id and request.method == 'DELETE':
+            favorite = Favorite.query.get(favorite_id)
+            db.session.delete(favorite)
+            db.commit()
+
+            return jsonify({"type":"Success", "message":"Successfully deleted job from your profile"})
+        
+        else:
+            return jsonify({"type":"Error", "message": "You must be signed in to access this feature"}), 400
+    except Exception as e:
+        print("Error", e)
+        return jsonify({"type":"Error","message": "Unable to delete job from profile, please try again"}), 400
+
 @app.route('/scrape', methods=['POST'])
 @get_user
 def scrape_job_data(user):
+    '''Scrapes job posts from a given site and analyses the description of each job post to match and count certain technologies provided by the user'''
     try:
         if request.method == 'POST':
             site = request.json["site"]
@@ -232,8 +293,10 @@ def scrape_job_data(user):
 
 
             query = {}
+            
             if user:
-                query = Query(site=site, job_type=job_type,city=city, country=country, province=province, user_id=user.id)
+                technology_string = " ".join(technologies)
+                query = Query(site=site, job_type=job_type,city=city, country=country, province=province, technologies=technology_string, user_id=user.id)
                 db.session.add(query)
                 db.session.commit()
                 save_to_db(query.id, output["jobs"])
@@ -273,6 +336,7 @@ def _crawler_result(item, response, spider):
     output_data.append(dict(item))
 
 def save_to_db(query_id, data):
+    '''Saves a job to the database'''
     for job in data:
         j = Job(title=job['title'], company=job['company'], rating=job['rating'], description=job['description'],link=job['link'], salary=job['salary'], query_id = query_id)
         db.session.add(j)
